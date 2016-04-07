@@ -5,22 +5,36 @@
  *      Author: luodichen
  */
 
+#include <sys/types.h>
+#include <signal.h>
+
 #include <stdio.h>
 #include <unistd.h>
 #include "ThostFtdcMdApi.h"
 #include "LMarketDataHandler.h"
+#include "LConfig.h"
 
 int main()
 {
+    LConfig config;
     CThostFtdcMdApi *pApi = CThostFtdcMdApi::CreateFtdcMdApi();
-    LMarketDataHandler handler(pApi);
 
+    LMarketDataHandler::FLAGS flags;
+    flags.enMode = LMarketDataHandler::FLAGS::M_NORMAL;
+    flags.strInstrument = "a1605";
+
+    config.Load("/etc/trade-demo.conf");
+
+    LMarketDataHandler handler(pApi, config.m_szBrokerID, config.m_szUserID, config.m_szPassword, flags);
     pApi->RegisterSpi(&handler);
-    pApi->RegisterFront("tcp://ctp1-md1.citicsf.com:41213");
+    pApi->RegisterFront(config.m_szServer);
     pApi->Init();
 
-    for (;;)
-        usleep(1000000);
+    handler.WaitForHandler();
+    pApi->Release();
+
+    // a dirty solution for the `double free or corruption` problem in libthostmduserapi.so
+    kill(getpid(), 2);
 
     return 0;
 }

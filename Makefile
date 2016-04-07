@@ -1,6 +1,6 @@
 export CXX = g++
-export CXXFLAGS = -fPIC -Wall -O0 -g
-export CXXLDFLAGS = -fPIC
+export CXXFLAGS = -fPIC -Wall -O0 -g -std=c++11
+export CXXLDFLAGS = -fPIC -g -std=c++11 -pthread
 export BIN = bin
 
 export TARGET = $(BIN)/trade-demo
