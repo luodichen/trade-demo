@@ -19,10 +19,7 @@ public:
     virtual ~IScreen() { };
 
     virtual void RefreshContent(std::vector<std::pair<std::string, std::string>> &vtPairs) = 0;
-
-    //template <typename ... ARGS>
     virtual void Log(const char *szFormat, ...) = 0;
-
     virtual void RefreshInput(std::string strContent) = 0;
 };
 

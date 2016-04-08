@@ -12,6 +12,7 @@
 #include "ThostFtdcMdApi.h"
 #include "LMarketDataHandler.h"
 #include "LScreen.h"
+#include "LFileScreen.h"
 
 #define STRCPY_S(d, s) strncpy((d), (s), sizeof(d))
 
@@ -25,6 +26,11 @@ LMarketDataHandler::LMarketDataHandler(CThostFtdcMdApi *pApi, const char *szBrok
     if (flags.enMode == LMarketDataHandler::FLAGS::M_NORMAL)
     {
         m_pScreen = new LScreen();
+    }
+    else if (flags.enMode == LMarketDataHandler::FLAGS::M_FILE)
+    {
+        m_pScreen = new LFileScreen(flags.strOutputFilePath.c_str(),
+                flags.strLogFilePath.c_str());
     }
 
     m_pScreen->Log("connecting to server...");
@@ -90,7 +96,8 @@ void LMarketDataHandler::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pD
     auto md = DepthMarketDataParser(pDepthMarketData);
     m_pScreen->RefreshContent(md);
 
-    if (m_objFlags.enMode == LMarketDataHandler::FLAGS::M_NORMAL)
+    if (m_objFlags.enMode == LMarketDataHandler::FLAGS::M_NORMAL
+            || m_objFlags.enMode == LMarketDataHandler::FLAGS::M_FILE)
     {
         char szInstrument[32] = { 0 };
         char *szInstrumentPackage[] = { szInstrument };
@@ -143,7 +150,20 @@ void LMarketDataHandler::LInputHandler::CommandConfirm(std::string strCommand)
 
 void LMarketDataHandler::WaitForHandler()
 {
-    sem_wait(&m_semHandlerCompleted);
+    if (m_objFlags.enMode == FLAGS::MODE::M_NORMAL
+            || m_objFlags.enMode == FLAGS::MODE::M_FILE)
+    {
+        struct timespec timeout = { 0, 0 };
+        timeout.tv_sec = time(nullptr) + 5;
+        if (-1 == sem_timedwait(&m_semHandlerCompleted, &timeout))
+        {
+            m_pScreen->Log("timed out");
+        }
+    }
+    else
+    {
+        sem_wait(&m_semHandlerCompleted);
+    }
 }
 
 template <>

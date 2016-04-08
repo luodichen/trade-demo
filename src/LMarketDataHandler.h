@@ -34,9 +34,22 @@ public:
     {
         enum MODE {
             M_NORMAL        = 0,
-            M_INTERACTIVE   = 1
+            M_FILE          = 1,
+            M_INTERACTIVE   = 2
         } enMode;
+
         std::string strInstrument;
+        std::string strOutputFilePath;
+        std::string strLogFilePath;
+
+        tagFLAGS()
+            : enMode(M_NORMAL)
+            , strInstrument("")
+            , strOutputFilePath("")
+            , strLogFilePath("")
+        {
+
+        }
     } FLAGS;
 
 public:

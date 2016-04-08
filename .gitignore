@@ -1,3 +1,4 @@
 *.o
+*.con
 bin/*
 Debug/
